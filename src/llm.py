@@ -125,7 +125,6 @@ def _call_openai_compat(prompt: str, schema: dict, temperature: float = 0.0) -> 
 
     cfg = _get_config()
     oc = cfg["llm"].get("openai_compat", {})
-    url = oc.get("base_url", "https://openrouter.ai/api/v1")
     mdl = oc.get("model", cfg["llm"]["model"])
 
     api_key = (
@@ -135,8 +134,16 @@ def _call_openai_compat(prompt: str, schema: dict, temperature: float = 0.0) -> 
     )
     if not api_key:
         raise ValueError(
-            "Missing API key! Please set OPENROUTER_API_KEY in your .env file."
+            "Missing API key! Please set OPENROUTER_API_KEY or NVIDIA_API_KEY in your environment/secrets."
         )
+
+    # Determine endpoint base_url
+    if os.environ.get("OPENAI_BASE_URL"):
+        url = os.environ.get("OPENAI_BASE_URL")
+    elif os.environ.get("NVIDIA_API_KEY") and not os.environ.get("OPENROUTER_API_KEY"):
+        url = "https://integrate.api.nvidia.com/v1"
+    else:
+        url = oc.get("base_url", "https://openrouter.ai/api/v1")
 
     client = OpenAI(
         base_url=url,

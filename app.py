@@ -324,11 +324,17 @@ def run_streamlit_app():
     custom_key = st.sidebar.text_input(
         "Override / Enter API Key (optional):",
         type="password",
-        help="Optional: enter an OpenRouter or Gemini API key here if not configured in .env"
+        help="Optional: enter an OpenRouter, NVIDIA, or Gemini API key here if not configured in secrets"
     )
     if custom_key:
-        os.environ["OPENROUTER_API_KEY"] = custom_key
-        os.environ["OPENAI_API_KEY"] = custom_key
+        if custom_key.startswith("nvapi-"):
+            os.environ["NVIDIA_API_KEY"] = custom_key
+        elif custom_key.startswith("sk-or-"):
+            os.environ["OPENROUTER_API_KEY"] = custom_key
+        else:
+            os.environ["OPENROUTER_API_KEY"] = custom_key
+            os.environ["NVIDIA_API_KEY"] = custom_key
+            os.environ["OPENAI_API_KEY"] = custom_key
         api_key_available = True
         st.sidebar.info("🔑 Custom API key active for this session")
 
