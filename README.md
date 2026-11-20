@@ -1,14 +1,3 @@
----
-title: Microdrama Promo Clip Finder
-emoji: 🎬
-colorFrom: blue
-colorTo: indigo
-sdk: streamlit
-sdk_version: "1.67.0"
-app_file: app.py
-pinned: false
----
-
 # 🎬 Microdrama Promo Clip Studio
 
 An enterprise-grade, highly interactive Streamlit application and high-performance pipeline that ingests timestamped microdrama screenplays (`.txt`) and discovers the best **20–60 second promo clips** — featuring a gripping hook within the first 3 seconds, high emotional intensity, a cliffhanger ending, standalone narrative understandability, and semantic deduplication.
@@ -177,13 +166,19 @@ python app.py "path/to/episode.txt" --stage rank
 
 ---
 
-## 🌐 Deploy to Hugging Face Spaces
+## 🌐 Free 1-Click Deployment on Streamlit Cloud
 
-This repository includes native Hugging Face Spaces configuration and an automated GitHub Actions sync workflow.
+Deploy this studio for free forever in 30 seconds using **Streamlit Community Cloud**:
 
-1. Create a Space at **[huggingface.co/new-space](https://huggingface.co/new-space)**:
-   - SDK: **Streamlit**
-   - Hardware: **CPU basic (Free)**
-2. In GitHub repository **Settings > Secrets and variables > Actions**, add `HF_TOKEN`.
-3. Pushing to `main` will automatically deploy your app to:
-   `https://huggingface.co/spaces/aman5345/Microdrama-Promo-Clip-Finder`
+1. Go to **[share.streamlit.io](https://share.streamlit.io/)** and log in with your GitHub account.
+2. Click **"New app"** (or **"Create app"**).
+3. Set:
+   - **Repository:** `amankumar5345/Microdrama-Promo-Clip-Finder`
+   - **Branch:** `main`
+   - **Main file path:** `app.py`
+4. *(Optional)* Click **Advanced settings** and paste your API key in Secrets:
+   ```toml
+   OPENROUTER_API_KEY = "your-key-here"
+   ```
+   *(If omitted, the app runs in **Fallback Mode** for free with zero token cost).*
+5. Click **Deploy!** Your live web app will be accessible worldwide on your custom `.streamlit.app` URL.
