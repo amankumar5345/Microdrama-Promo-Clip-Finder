@@ -1,3 +1,14 @@
+---
+title: Microdrama Promo Clip Finder
+emoji: 🎬
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: "1.67.0"
+app_file: app.py
+pinned: false
+---
+
 # 🎬 Microdrama Promo Clip Finder
 
 A high-performance pipeline and interactive Streamlit web application that ingests timestamped microdrama screenplays (`.txt`) and discovers the best **20–60 second promo clips** — featuring a gripping hook within the first 3 seconds, high emotional intensity, a cliffhanger ending, standalone narrative understandability, and semantic deduplication.
