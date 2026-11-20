@@ -28,7 +28,12 @@ def _extract_ep_number(ep: dict) -> int:
     return int(m.group(0)) if m else 1
 
 
-def build_candidates(episode: dict) -> list[dict]:
+def build_candidates(
+    episode: dict,
+    min_seconds: float = None,
+    max_seconds: float = None,
+    hook_window_seconds: float = None,
+) -> list[dict]:
     """
     Generate candidate windows of 20-60s bounded by dialogue lines.
 
@@ -36,12 +41,22 @@ def build_candidates(episode: dict) -> list[dict]:
     ----------
     episode : dict
         Parsed episode dictionary containing 'events' list.
+    min_seconds : float, optional
+        Minimum window duration in seconds (default from config: 20).
+    max_seconds : float, optional
+        Maximum window duration in seconds (default from config: 60).
+    hook_window_seconds : float, optional
+        Window limit to check early hook (default from config: 3).
 
     Returns
     -------
     list[dict]
         Candidate window dicts with clip_id like 'ep01_w001'.
     """
+    min_s = min_seconds if min_seconds is not None else MIN_SEC
+    max_s = max_seconds if max_seconds is not None else MAX_SEC
+    hook_w = hook_window_seconds if hook_window_seconds is not None else HOOK_WIN
+
     events = episode.get("events", [])
     ep_num = _extract_ep_number(episode)
 
@@ -59,9 +74,9 @@ def build_candidates(episode: dict) -> list[dict]:
             end_s = end_event["end_s"]
             dur = end_s - start_s
 
-            if dur < MIN_SEC:
+            if dur < min_s:
                 continue
-            if dur > MAX_SEC:
+            if dur > max_s:
                 break  # Further dialogue lines only increase duration
 
             # Window of all events between start dialogue and end dialogue
@@ -70,7 +85,7 @@ def build_candidates(episode: dict) -> list[dict]:
             # Rule: Drop windows with no dialogue or action in the first 3 seconds
             has_early_hook = any(
                 (e["type"] in ("dialogue", "action"))
-                and (e["start_s"] - start_s <= HOOK_WIN)
+                and (e["start_s"] - start_s <= hook_w)
                 for e in win_events
             )
             if not has_early_hook:
