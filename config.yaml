@@ -1,0 +1,25 @@
+# ── LLM provider ────────────────────────────────────────────────────────────
+llm:
+  provider: openai_compat            # openai_compat (OpenRouter, Groq, local, etc.) or gemini
+  model: nvidia/nemotron-3-ultra-550b-a55b
+
+  # OpenAI-compatible endpoint configuration (OpenRouter)
+  openai_compat:
+    base_url: https://openrouter.ai/api/v1
+    model: nvidia/nemotron-3-ultra-550b-a55b
+
+# ── Clip window parameters ───────────────────────────────────────────────────
+window:
+  min_seconds: 20
+  max_seconds: 60
+  hook_window_seconds: 3             # first N s of a clip must have a hook block
+
+# ── Output ───────────────────────────────────────────────────────────────────
+top_n: 5                             # top clips to surface per episode
+
+# ── Ranking weights (must sum to 1.0) ────────────────────────────────────────
+weights:
+  hook:         0.30
+  cliffhanger:  0.30
+  standalone:   0.25
+  emotion:      0.15

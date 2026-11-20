@@ -1,0 +1,7 @@
+google-genai>=0.8.0            # new unified SDK (replaces google-generativeai)
+openai>=1.0.0                  # used for openai_compat provider (Groq, OpenRouter, etc.)
+pyyaml>=6.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+sentence-transformers>=2.2.0
+streamlit>=1.30.0

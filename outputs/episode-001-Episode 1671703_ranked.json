@@ -1,0 +1,76 @@
+{
+  "episode_number": "Episode 1",
+  "logline": "Lady Juliana arrives at the cathedral in her late mother's bridal gown, only to suffer the ultimate betrayal when her fiancé Gerald abandons her at the altar for her cruel sister Clarissa with her family's full blessing.",
+  "top_clips": [
+    {
+      "clip_id": "clip_0066",
+      "duration_sec": 38.3,
+      "start_s": 4.8,
+      "end_s": 43.1,
+      "start_fmt": "00:04.80",
+      "end_fmt": "00:43.10",
+      "hook": 8,
+      "cliffhanger": 10,
+      "standalone": 8,
+      "emotion": 9,
+      "total_score": 8.75,
+      "reasoning": "Opening mid-confrontation with 'Not anymore' sacrifices some mystery but thrusts us straight into high-stakes betrayal. The cliffhanger is maximal: the Lady in Gold Gown's smug 'Because he is marrying me' forces an immediate need for the next beat. Standalone clarity improves as the sister's identity and the hand-holding visual make the betrayal explicit. Juliana's progression from confusion to devastated 'No...' anchors a deeply engaging emotional arc."
+    },
+    {
+      "clip_id": "clip_0005",
+      "duration_sec": 25.5,
+      "start_s": 0.0,
+      "end_s": 25.5,
+      "start_fmt": "00:00.00",
+      "end_fmt": "00:25.50",
+      "hook": 9,
+      "cliffhanger": 9,
+      "standalone": 7,
+      "emotion": 9,
+      "total_score": 8.5,
+      "reasoning": "The symmetrical cathedral doors opening onto a joyful bride creates immediate visual intrigue, amplified by the Matriarch's chilling command to turn around. The clip ends on the devastating 'Look for yourself' reveal, leaving the viewer desperate to see Gerald's betrayal. A newcomer grasps the core conflict — a bride stopped at her own wedding — but misses the mother's-gown significance. The emotional swing from bridal anticipation to cruel dismissal delivers a powerful gut-punch."
+    },
+    {
+      "clip_id": "clip_0238",
+      "duration_sec": 58.6,
+      "start_s": 13.5,
+      "end_s": 72.1,
+      "start_fmt": "00:13.50",
+      "end_fmt": "01:12.10",
+      "hook": 7,
+      "cliffhanger": 9,
+      "standalone": 8,
+      "emotion": 10,
+      "total_score": 8.3,
+      "reasoning": "The longest clip begins mid-confrontation but layers every betrayal: sister, fiancé, matriarch, and finally the father's silent complicity. Gerald's cold 'I changed my mind' and the sister's 'Of course I knew' deliver a one-two punch cliffhanger. Standalone viewing is rich — the mother's-gown motif, the father's refusal, the matriarch's cruelty all coherently presented. Emotion is maximal: Juliana's itemized heartbreak ('mother's gown,' 'believed I was walking toward my husband') is devastating."
+    },
+    {
+      "clip_id": "clip_0223",
+      "duration_sec": 38.5,
+      "start_s": 13.5,
+      "end_s": 52.0,
+      "start_fmt": "00:13.50",
+      "end_fmt": "00:52.00",
+      "hook": 7,
+      "cliffhanger": 9,
+      "standalone": 8,
+      "emotion": 9,
+      "total_score": 8.15,
+      "reasoning": "Opening on Juliana's desperate 'Why?' and 'Gerald is waiting for me' creates immediate sympathy and urgency. The cliffhanger spikes at the sister's declaration 'Because he is marrying me,' a perfect promo endpoint. Standalone clarity is high: the visual of interlocked gloves and the sister's gloat make the betrayal unmistakable. Emotion peaks with Juliana's gasp and the guests' judging whispers amplifying her humiliation."
+    },
+    {
+      "clip_id": "clip_0075",
+      "duration_sec": 55.2,
+      "start_s": 4.8,
+      "end_s": 60.0,
+      "start_fmt": "00:04.80",
+      "end_fmt": "01:00.00",
+      "hook": 7,
+      "cliffhanger": 8,
+      "standalone": 8,
+      "emotion": 10,
+      "total_score": 8.0,
+      "reasoning": "Starting at 'Not anymore' drops the hook slightly below the preceding clips, but the extended runtime allows Juliana's full emotional collapse — from whispered 'Gerald?' to the searing accusation 'You let me believe I was walking toward my husband!' — making this the most emotionally resonant segment. The cliffhanger lands on her outrage rather than a plot reveal, slightly softening the 'what happens next' pull. Standalone viewing works well; the mother's-gown detail adds poignant context."
+    }
+  ]
+}

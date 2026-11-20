@@ -1,0 +1,65 @@
+[
+  {
+    "clip_id": "ep01_w083",
+    "episode": "Episode 1",
+    "duration_sec": 36.6,
+    "start_time": "00:33.80",
+    "end_time": "01:10.40",
+    "start_s": 33.8,
+    "end_s": 70.4,
+    "total_score": 9.4,
+    "scores": {
+      "hook": 10.0,
+      "cliffhanger": 8.0,
+      "emotion": 10.0,
+      "standalone": 7.5
+    },
+    "hook_line": "\"Gerald?\"",
+    "hook_type": "question",
+    "cliffhanger_line": "\"And you knew?\"",
+    "why_it_works": "Fallback heuristic rank: Final line ends in unresolved question '?'; 16 dramatic tones (Shaken, Heartbroken, Gloating); shock words [changed my mind, husband, loved, marrying]; pace 19.7 lines/min",
+    "problems": [],
+    "standalone_test": {
+      "characters": [
+        "LADY JULIANA",
+        "LADY IN GOLD GOWN",
+        "THE FORMER GROOM"
+      ],
+      "conflict": "Determined via heuristic conflict pre-filtering",
+      "what_happens_next": "Cliffhanger leaves high anticipation",
+      "understandability": 7.5
+    }
+  },
+  {
+    "clip_id": "ep01_w166",
+    "episode": "Episode 1",
+    "duration_sec": 52.6,
+    "start_time": "00:54.70",
+    "end_time": "01:47.30",
+    "start_s": 54.7,
+    "end_s": 107.3,
+    "total_score": 9.4,
+    "scores": {
+      "hook": 10.0,
+      "cliffhanger": 8.0,
+      "emotion": 10.0,
+      "standalone": 7.5
+    },
+    "hook_line": "\"You let me dress in my mother's gown...\"",
+    "hook_type": "dialogue hook",
+    "cliffhanger_line": "\"And I am what?\"",
+    "why_it_works": "Fallback heuristic rank: Final line ends in unresolved question '?'; 18 dramatic tones (Crushed, Crying Out, Cold); shock words [changed my mind, embarrassed, family, father]; pace 20.5 lines/min",
+    "problems": [],
+    "standalone_test": {
+      "characters": [
+        "LADY JULIANA",
+        "THE FORMER GROOM",
+        "LADY IN GOLD GOWN",
+        "MATRIARCH"
+      ],
+      "conflict": "Determined via heuristic conflict pre-filtering",
+      "what_happens_next": "Cliffhanger leaves high anticipation",
+      "understandability": 7.5
+    }
+  }
+]
