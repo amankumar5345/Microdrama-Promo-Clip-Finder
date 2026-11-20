@@ -44,8 +44,16 @@ from ui.components import (
     render_metric_cards,
     render_clip_card,
     render_empty_state,
+    render_social_and_blind_details,
 )
-from ui.charts import render_drama_timeline, render_score_radar, render_score_distribution
+from ui.charts import (
+    render_drama_timeline,
+    render_score_radar,
+    render_score_distribution,
+    render_character_share,
+    render_tone_frequency,
+    render_pacing_scatter,
+)
 from ui.editor import render_clip_editor, render_clip_comparison
 from ui.history_sidebar import render_history_sidebar
 from ui.chat import render_script_chat
@@ -219,11 +227,28 @@ def run_streamlit_app():
     max_promos = st.sidebar.slider("Max Promos per Episode:", 1, 5, 2)
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("📱 Aspect Ratio Preset")
-    aspect_ratio = st.sidebar.selectbox(
-        "Social Video Preset:",
-        ["9:16 (Vertical - TikTok / Reels / Shorts)", "1:1 (Square - Feed)", "16:9 (Landscape - YouTube / Web)"],
+    st.sidebar.subheader("🎭 Drama Style Filter")
+    selected_tone_style = st.sidebar.selectbox(
+        "Target Drama Tone:",
+        [
+            "All Drama Styles",
+            "High Confrontation & Betrayal",
+            "Unresolved Mystery & Cliffhanger",
+            "Heartbreak & Emotional Shock",
+            "Fast-Paced Heated Exchange",
+        ],
         index=0,
+        help="Filter candidates according to emotional profile and pacing.",
+    )
+
+    st.sidebar.subheader("⚡ Scoring Thresholds")
+    min_hook_threshold = st.sidebar.slider(
+        "Min Hook Score (1-10):",
+        min_value=1.0,
+        max_value=10.0,
+        value=6.0,
+        step=0.5,
+        help="Filter out clips with weak opening hooks.",
     )
 
     # Sample script button
@@ -332,23 +357,93 @@ def run_streamlit_app():
         st.markdown("---")
 
         # Top Filter & Search Bar
-        f_col1, f_col2, f_col3 = st.columns([1.5, 1.2, 1.3])
+        f_col1, f_col2, f_col3 = st.columns([1.6, 1.2, 1.2])
         with f_col1:
-            search_query = st.text_input("🔍 Search within dialogue/quotes:", placeholder="e.g. altar, marry, gown...").lower()
+            search_query = st.text_input(
+                "🔍 Search within dialogue/quotes:",
+                value="",
+                placeholder="e.g. altar, marry, gown, Duke, soldier...",
+                help="Type a dialogue line, character name, or keyword and press Enter.",
+            ).strip().lower()
         with f_col2:
-            min_score_filter = st.slider("Filter by Min Total Score:", 0.0, 10.0, 7.0, step=0.1)
+            min_score_filter = st.slider("Filter by Min Total Score:", 0.0, 10.0, 6.0, step=0.1)
         with f_col3:
-            sort_by = st.selectbox("Sort Results By:", ["Total Score (High → Low)", "Duration (Short → Long)", "Start Time (Earliest First)"])
+            sort_by = st.selectbox(
+                "Sort Results By:",
+                ["Total Score (High → Low)", "Duration (Short → Long)", "Start Time (Earliest First)"],
+            )
 
         # Apply filtering & sorting
         filtered_clips = list(ranked_clips)
+        episode_obj = st.session_state.get("current_episode") or {}
+
+        # ── Functional Dialogue/Quote Search with Presence Feedback ─────────
         if search_query:
-            filtered_clips = [
-                c for c in filtered_clips
-                if search_query in c.get("hook_line", "").lower()
-                or search_query in c.get("cliffhanger_line", "").lower()
-                or search_query in c.get("why_it_works", "").lower()
+            script_events = episode_obj.get("events", []) if isinstance(episode_obj, dict) else []
+            dialogue_matches = [
+                ev for ev in script_events
+                if ev.get("type") == "dialogue" and search_query in ev.get("text", "").lower()
             ]
+            character_matches = [
+                ev for ev in script_events
+                if ev.get("speaker") and search_query in ev.get("speaker", "").lower()
+            ]
+
+            clip_matches = []
+            for c in filtered_clips:
+                c_start = c.get("start_s", c.get("_start_s", 0))
+                c_end = c.get("end_s", c.get("_end_s", 9999))
+                in_lines = (
+                    search_query in c.get("hook_line", "").lower()
+                    or search_query in c.get("cliffhanger_line", "").lower()
+                    or search_query in c.get("why_it_works", "").lower()
+                )
+                in_window = any(
+                    search_query in ev.get("text", "").lower() or search_query in ev.get("speaker", "").lower()
+                    for ev in script_events
+                    if c_start <= ev.get("start_s", 0) <= c_end
+                )
+                if in_lines or in_window:
+                    clip_matches.append(c)
+
+            total_found = len(dialogue_matches) + len(character_matches) + len(clip_matches)
+            if total_found == 0:
+                st.error(f"❌ **Not Present:** The dialogue or quote *\"{search_query}\"* does not appear in this screenplay or any promo cuts.")
+                filtered_clips = []
+            else:
+                filtered_clips = clip_matches
+                if clip_matches:
+                    st.success(f"✅ Found **{len(clip_matches)}** promo clip(s) containing *\"{search_query}\"*!")
+                else:
+                    st.warning(f"⚠️ Dialogue *\"{search_query}\"* is present in the screenplay ({len(dialogue_matches)} occurrences), but not inside these selected top promo cuts.")
+
+                if dialogue_matches:
+                    with st.expander(f"📜 View {len(dialogue_matches)} Screenplay Dialogue Occurrences for \"{search_query}\"", expanded=False):
+                        for dm in dialogue_matches[:8]:
+                            time_label = f"[{dm.get('start_s', 0):.1f}s]"
+                            st.markdown(f"**{time_label} {dm.get('speaker', 'Unknown')}:** \"_{dm.get('text', '')}_\" *(Tone: {dm.get('tone', 'N/A')})*")
+
+        # Apply Drama Style Filter from sidebar
+        if selected_tone_style != "All Drama Styles" and filtered_clips:
+            tone_lower = selected_tone_style.lower()
+            if "confrontation" in tone_lower:
+                matched = [c for c in filtered_clips if any(w in c.get("why_it_works", "").lower() or w in str(c.get("tones", [])).lower() for w in ["confront", "betray", "anger", "clash", "shock", "demand"])]
+            elif "mystery" in tone_lower:
+                matched = [c for c in filtered_clips if c.get("cliffhanger", 0) >= 6.5 or "cliffhanger" in c.get("why_it_works", "").lower()]
+            elif "heartbreak" in tone_lower:
+                matched = [c for c in filtered_clips if c.get("emotion", 0) >= 6.5 or any(w in c.get("why_it_works", "").lower() for w in ["heartbreak", "emotional", "cry", "grief", "sad", "soldier"])]
+            elif "fast-paced" in tone_lower:
+                matched = [c for c in filtered_clips if c.get("duration_sec", 0) <= 40 or "fast" in c.get("why_it_works", "").lower()]
+            else:
+                matched = filtered_clips
+            if matched:
+                filtered_clips = matched
+
+        # Apply Min Hook Score filter
+        if min_hook_threshold > 1.0 and filtered_clips:
+            hook_matched = [c for c in filtered_clips if c.get("hook", 0.0) >= min_hook_threshold]
+            if hook_matched:
+                filtered_clips = hook_matched
 
         filtered_clips = [c for c in filtered_clips if c.get("total_score", 0.0) >= min_score_filter]
 
@@ -378,18 +473,29 @@ def run_streamlit_app():
                         clip=clip,
                         rank_idx=idx,
                         session_id=st.session_state.get("current_session_id", "temp"),
-                        aspect_ratio=aspect_ratio,
                     )
+
+                # Render social media captions & blind comprehension testing ONCE
+                render_social_and_blind_details(ranked_clips=filtered_clips, episode=episode_obj)
 
         # ── Tab 2: Visual Charts ─────────────────────────────────────────────
         with tab_charts:
             episode_obj = st.session_state.get("current_episode") or {}
             render_drama_timeline(episode=episode_obj, ranked_clips=filtered_clips)
+            
             c_c1, c_c2 = st.columns(2)
             with c_c1:
                 render_score_radar(ranked_clips=filtered_clips)
             with c_c2:
                 render_score_distribution(ranked_clips=filtered_clips)
+
+            c_c3, c_c4 = st.columns(2)
+            with c_c3:
+                render_character_share(episode=episode_obj)
+            with c_c4:
+                render_tone_frequency(episode=episode_obj)
+
+            render_pacing_scatter(ranked_clips=filtered_clips)
 
         # ── Tab 3: Trimmer & Compare ─────────────────────────────────────────
         with tab_editor:

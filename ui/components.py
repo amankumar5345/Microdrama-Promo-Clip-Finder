@@ -168,37 +168,59 @@ def render_clip_card(
         st.progress(e_score / 10.0, text=f"Emotion: {e_score:.1f}/10")
         st.progress(s_score / 10.0, text=f"Standalone: {s_score:.1f}/10")
 
-        # Visual Aspect Ratio Frame Mockup
-        ratio_h = "160px" if "9:16" in aspect_ratio else ("120px" if "1:1" in aspect_ratio else "90px")
-        st.markdown(f"""
-            <div class="aspect-preview-box" style="height: {ratio_h}; margin-top: 0.6rem;">
-                <span>📱 {aspect_ratio} Framing Preview</span>
-            </div>
-        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # Social Media Copywriting Generator Expandable Tab
-    with st.expander(f"📱 AI Social Media Captions & Hashtags (Reels / TikTok / Shorts)"):
+
+def render_social_and_blind_details(ranked_clips: list[dict], episode: dict = None):
+    """
+    Render social media captions and blind test analysis ONCE in the UI
+    with an interactive clip selector to prevent duplicate expanders.
+    """
+    if not ranked_clips:
+        return
+
+    st.markdown("---")
+    st.markdown("### 📱 Social Copywriting & Blind Comprehension Studio")
+    st.caption("Select a promo cut to inspect viral social media presets and narrative comprehension testing.")
+
+    clip_labels = [f"#{idx} — {c['clip_id']} ({c.get('start_fmt')} → {c.get('end_fmt')}) — Score: {c.get('total_score', 0):.2f}" for idx, c in enumerate(ranked_clips, 1)]
+    selected_idx = st.selectbox(
+        "Select Clip to Inspect:",
+        range(len(ranked_clips)),
+        format_func=lambda i: clip_labels[i],
+        key="global_social_blind_selector",
+    )
+    clip = ranked_clips[selected_idx]
+    cid = clip["clip_id"]
+    ep = clip.get("episode", episode.get("episode_number", "Episode") if episode else "Episode")
+
+    # 1. Social Media Presets (Appears ONCE)
+    with st.expander(f"📱 AI Social Media Captions & Hashtags (Reels / TikTok / Shorts) — {cid}", expanded=True):
         social = generate_social_promos(clip, episode_title=ep)
         tab_tt, tab_ig, tab_yt = st.tabs(["🎵 TikTok", "📸 Instagram Reels", "▶️ YouTube Shorts"])
 
         with tab_tt:
-            st.text_area("TikTok Hook & Caption:", value=social["tiktok"]["caption"], height=120, key=f"tt_{cid}")
+            st.text_area("TikTok Hook & Caption:", value=social["tiktok"]["caption"], height=120, key=f"tt_single_{cid}")
             st.code(" ".join(social["tiktok"]["hashtags"]), language="markdown")
 
         with tab_ig:
-            st.text_area("Instagram Reels Caption:", value=social["reels"]["caption"], height=120, key=f"ig_{cid}")
+            st.text_area("Instagram Reels Caption:", value=social["reels"]["caption"], height=120, key=f"ig_single_{cid}")
             st.code(" ".join(social["reels"]["hashtags"]), language="markdown")
 
         with tab_yt:
-            st.text_area("YouTube Shorts Title & Description:", value=f"{social['shorts']['hook_title']}\n\n{social['shorts']['caption']}", height=120, key=f"yt_{cid}")
+            st.text_area("YouTube Shorts Title & Description:", value=f"{social['shorts']['hook_title']}\n\n{social['shorts']['caption']}", height=120, key=f"yt_single_{cid}")
             st.code(" ".join(social["shorts"]["hashtags"]), language="markdown")
 
-    # Blind comprehension test
+    # 2. Blind Comprehension Test (Appears ONCE)
     st_test = clip.get("standalone_test")
     if st_test:
-        with st.expander("🧪 Blind Standalone Comprehension Test Details"):
-            st.markdown(f"**Detected Characters:** {', '.join(st_test.get('characters', []))}")
-            st.markdown(f"**Identified Conflict:** {st_test.get('conflict', '')}")
-            st.markdown(f"**Anticipation Hook:** {st_test.get('what_happens_next', '')}")
+        with st.expander(f"🧪 Blind Standalone Comprehension Test Details — {cid}"):
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                st.markdown(f"**Detected Characters:**\n- {', '.join(st_test.get('characters', []))}")
+                st.markdown(f"**Identified Core Conflict:**\n> {st_test.get('conflict', '')}")
+            with c2:
+                st.markdown(f"**Audience Anticipation & Hook:**\n> {st_test.get('what_happens_next', '')}")
+                und = st_test.get("understandability", clip.get("standalone", 7.0))
+                st.metric("Understandability Score", f"{und:.1f} / 10")
 
-    st.markdown("</div>", unsafe_allow_html=True)
