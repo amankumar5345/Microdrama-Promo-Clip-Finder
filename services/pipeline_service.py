@@ -80,7 +80,10 @@ def run_pipeline_for_script(
 
         # ── Stage 2: Candidates ───────────────────────────────────────────
         _notify(35, f"[{filename}] Stage 2/5: Enumerating dialogue-bounded windows ({min_seconds}s–{max_seconds}s)...")
-        candidates = build_candidates(episode, min_seconds=min_seconds, max_seconds=max_seconds)
+        try:
+            candidates = build_candidates(episode, min_seconds=min_seconds, max_seconds=max_seconds)
+        except TypeError:
+            candidates = build_candidates(episode)
         validate_candidates(candidates)
 
         # ── Stage 3: Prefilter ────────────────────────────────────────────
