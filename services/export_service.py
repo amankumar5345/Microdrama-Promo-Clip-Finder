@@ -19,7 +19,7 @@ def export_promos_csv(ranked_clips: list[dict]) -> str:
     fieldnames = [
         "rank", "episode", "clip_id", "start_time", "end_time", "duration_sec",
         "total_score", "hook_score", "cliffhanger_score", "emotion_score",
-        "standalone_score", "hook_line", "hook_type", "cliffhanger_line", "why_it_works"
+        "standalone_score", "approval_status", "approval_notes", "hook_line", "hook_type", "cliffhanger_line", "why_it_works"
     ]
     writer = csv.DictWriter(csv_buf, fieldnames=fieldnames)
     writer.writeheader()
@@ -36,6 +36,8 @@ def export_promos_csv(ranked_clips: list[dict]) -> str:
             "cliffhanger_score": round(c.get("cliffhanger", 0.0), 1),
             "emotion_score": round(c.get("emotion", 0.0), 1),
             "standalone_score": round(c.get("standalone", 0.0), 1),
+            "approval_status": c.get("approval_status", "pending"),
+            "approval_notes": c.get("approval_notes", ""),
             "hook_line": c.get("hook_line", ""),
             "hook_type": c.get("hook_type", ""),
             "cliffhanger_line": c.get("cliffhanger_line", ""),
@@ -57,6 +59,8 @@ def export_promos_json(ranked_clips: list[dict]) -> str:
             "start_s": c.get("start_s", c.get("_start_s", 0.0)),
             "end_s": c.get("end_s", c.get("_end_s", 0.0)),
             "total_score": round(c.get("total_score", 0.0), 2),
+            "approval_status": c.get("approval_status", "pending"),
+            "approval_notes": c.get("approval_notes", ""),
             "scores": {
                 "hook": c.get("hook", 0.0),
                 "cliffhanger": c.get("cliffhanger", 0.0),

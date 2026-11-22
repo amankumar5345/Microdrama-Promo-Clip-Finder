@@ -357,7 +357,7 @@ def run_streamlit_app():
         st.markdown("---")
 
         # Top Filter & Search Bar
-        f_col1, f_col2, f_col3 = st.columns([1.6, 1.2, 1.2])
+        f_col1, f_col2, f_col3, f_col4 = st.columns([1.4, 1.0, 1.0, 1.0])
         with f_col1:
             search_query = st.text_input(
                 "🔍 Search within dialogue/quotes:",
@@ -372,10 +372,26 @@ def run_streamlit_app():
                 "Sort Results By:",
                 ["Total Score (High → Low)", "Duration (Short → Long)", "Start Time (Earliest First)"],
             )
+        with f_col4:
+            approval_filter = st.selectbox(
+                "Filter by Approval:",
+                ["All Promos", "✅ Approved Only", "⏳ Pending Only", "❌ Rejected Only", "⚠️ Needs Re-cut Only"],
+            )
 
         # Apply filtering & sorting
         filtered_clips = list(ranked_clips)
         episode_obj = st.session_state.get("current_episode") or {}
+
+        # Filter by Human Approval Status
+        if approval_filter != "All Promos" and filtered_clips:
+            if "Approved" in approval_filter:
+                filtered_clips = [c for c in filtered_clips if (st.session_state.get(f"approval_{c['clip_id']}") or c.get("approval_status")) == "approved"]
+            elif "Pending" in approval_filter:
+                filtered_clips = [c for c in filtered_clips if (st.session_state.get(f"approval_{c['clip_id']}") or c.get("approval_status", "pending")) == "pending"]
+            elif "Rejected" in approval_filter:
+                filtered_clips = [c for c in filtered_clips if (st.session_state.get(f"approval_{c['clip_id']}") or c.get("approval_status")) == "rejected"]
+            elif "Re-cut" in approval_filter:
+                filtered_clips = [c for c in filtered_clips if (st.session_state.get(f"approval_{c['clip_id']}") or c.get("approval_status")) == "recut"]
 
         # ── Functional Dialogue/Quote Search with Presence Feedback ─────────
         if search_query:
@@ -473,6 +489,7 @@ def run_streamlit_app():
                         clip=clip,
                         rank_idx=idx,
                         session_id=st.session_state.get("current_session_id", "temp"),
+                        episode=episode_obj,
                     )
 
                 # Render social media captions & blind comprehension testing ONCE
@@ -569,9 +586,12 @@ def run_streamlit_app():
             st.markdown("#### Structured Data Table")
             table_data = []
             for i, c in enumerate(filtered_clips, 1):
+                status = st.session_state.get(f"approval_{c['clip_id']}") or c.get("approval_status") or "pending"
+                status_icon = "✅ Approved" if status == "approved" else ("❌ Rejected" if status == "rejected" else ("⚠️ Needs Re-cut" if status == "recut" else "⏳ Pending"))
                 table_data.append({
                     "Rank": i,
                     "Clip ID": c["clip_id"],
+                    "Approval": status_icon,
                     "Time Window": f"{c.get('start_fmt')} → {c.get('end_fmt')}",
                     "Duration": f"{c.get('duration_sec', 0):.1f}s",
                     "Total Score": c.get("total_score", 0.0),

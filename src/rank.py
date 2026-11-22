@@ -119,6 +119,7 @@ def _format_clip(cand: dict, ep_num: str = "Episode 1") -> dict:
         "problems":         cand.get("problems",         []),
         "standalone_test":  cand.get("standalone_test",  {}),
         "raw_evaluation":   cand.get("raw_evaluation",   {}),
+        "_events":          cand.get("_events",          []),
     }
 
 

@@ -143,6 +143,38 @@ def inject_custom_styles():
             font-weight: 600;
         }
 
+        /* Video Editor Cut Box */
+        .editor-cut-banner {
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Conversation transcript lines */
+        .transcript-line {
+            background: rgba(15, 23, 42, 0.65);
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #4F46E5;
+            transition: all 0.2s ease;
+        }
+        .transcript-line:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-left-color: #818CF8;
+        }
+        .transcript-line-hook {
+            border-left-color: #10B981;
+            background: rgba(6, 78, 59, 0.25);
+        }
+        .transcript-line-cliff {
+            border-left-color: #EC4899;
+            background: rgba(131, 24, 67, 0.25);
+        }
+
         /* Custom Scrollbars */
         ::-webkit-scrollbar {
             width: 7px;

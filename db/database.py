@@ -70,6 +70,8 @@ class PromoDatabase:
                     raw_data_json TEXT,
                     is_favorite INTEGER DEFAULT 0,
                     user_feedback INTEGER DEFAULT 0,
+                    approval_status TEXT DEFAULT 'pending',
+                    approval_notes TEXT DEFAULT '',
                     FOREIGN KEY (session_id) REFERENCES sessions (id) ON DELETE CASCADE
                 );
 
@@ -85,6 +87,15 @@ class PromoDatabase:
                 CREATE INDEX IF NOT EXISTS idx_clips_session ON clips (session_id);
                 CREATE INDEX IF NOT EXISTS idx_messages_session ON messages (session_id);
             """)
+
+            # Safe auto-migration for existing tables
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(clips)")
+            cols = [col[1] for col in cursor.fetchall()]
+            if "approval_status" not in cols:
+                conn.execute("ALTER TABLE clips ADD COLUMN approval_status TEXT DEFAULT 'pending'")
+            if "approval_notes" not in cols:
+                conn.execute("ALTER TABLE clips ADD COLUMN approval_notes TEXT DEFAULT ''")
 
     # ── Sessions ─────────────────────────────────────────────────────────────
 
@@ -167,8 +178,9 @@ class PromoDatabase:
                         start_fmt, end_fmt, total_score, hook_score, cliffhanger_score,
                         emotion_score, standalone_score, hook_line, hook_type,
                         cliffhanger_line, why_it_works, problems_json,
-                        standalone_test_json, raw_data_json, is_favorite, user_feedback
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        standalone_test_json, raw_data_json, is_favorite, user_feedback,
+                        approval_status, approval_notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         session_id,
@@ -192,6 +204,8 @@ class PromoDatabase:
                         json.dumps(c, ensure_ascii=False),
                         1 if c.get("is_favorite") else 0,
                         c.get("user_feedback", 0),
+                        c.get("approval_status", "pending"),
+                        c.get("approval_notes", ""),
                     )
                 )
 
@@ -212,8 +226,32 @@ class PromoDatabase:
                 item["emotion"] = item["emotion_score"]
                 item["standalone"] = item["standalone_score"]
                 item["is_favorite"] = bool(item.get("is_favorite", 0))
+                item["approval_status"] = item.get("approval_status") or "pending"
+                item["approval_notes"] = item.get("approval_notes") or ""
                 results.append(item)
             return results
+
+    def set_approval_status(self, clip_id: str, session_id: str, status: str, notes: str = ""):
+        """Set human approval status ('approved', 'rejected', 'recut', 'pending') and notes."""
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE clips SET approval_status = ?, approval_notes = ? WHERE clip_id = ? AND session_id = ?",
+                (status, notes, clip_id, session_id)
+            )
+
+    def get_approval_status(self, clip_id: str, session_id: str) -> dict:
+        """Fetch human approval status and notes for a clip."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT approval_status, approval_notes FROM clips WHERE clip_id = ? AND session_id = ?",
+                (clip_id, session_id)
+            ).fetchone()
+            if row:
+                return {
+                    "status": row["approval_status"] or "pending",
+                    "notes": row["approval_notes"] or ""
+                }
+            return {"status": "pending", "notes": ""}
 
     def toggle_favorite(self, clip_id: str, session_id: str) -> bool:
         """Toggle favorite star state for a clip."""
