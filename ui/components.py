@@ -336,47 +336,23 @@ def render_clip_card(
         f"💬 Full Promo Conversation & Script Transcript (What Viewers Will See & Hear) — {len(d_events)} Dialogue Lines",
         expanded=True,
     ):
-        st.markdown(f"""
-            <div style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 0.8rem; line-height: 1.45;">
-                🎬 <strong>If you choose this promo, this is the exact conversation and scene dialogue that will be shown to viewers in the trailer video:</strong>
-            </div>
-            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
-                <span style="background: rgba(99,102,241,0.2); color: #C7D2FE; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">
-                    🗣️ Dialogue Lines: <strong>{len(d_events)}</strong>
-                </span>
-                <span style="background: rgba(56,189,248,0.2); color: #BAE6FD; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">
-                    👥 Featured Characters: <strong>{', '.join(characters_in_promo) if characters_in_promo else 'Narrative / Voice'}</strong>
-                </span>
-                <span style="background: rgba(244,114,182,0.2); color: #FBCFE8; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">
-                    📝 Dialogue Words: <strong>{word_count}</strong>
-                </span>
-                <span style="background: rgba(16,185,129,0.2); color: #A7F3D0; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">
-                    ⚡ Window: <strong>{start_fmt} → {end_fmt}</strong>
-                </span>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            "🎬 **If you choose this promo, this is the exact conversation and scene dialogue that will be shown to viewers in the trailer video:**"
+        )
+        st.markdown(
+            f"🗣️ **Dialogue Lines:** {len(d_events)} | "
+            f"👥 **Featured Characters:** {', '.join(characters_in_promo) if characters_in_promo else 'Narrative / Voice'} | "
+            f"📝 **Words:** {word_count} | "
+            f"⚡ **Cut Range:** `{start_fmt}` → `{end_fmt}`"
+        )
+        st.markdown("---")
 
         if not events:
             # Fallback if events list was not present
-            st.markdown(f"""
-                <div class="transcript-line transcript-line-hook">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
-                        <span style="color: #34D399; font-weight: 700; font-size: 0.82rem;">🪝 OPENING HOOK (00:00–00:03s)</span>
-                        <span style="color: #64748B; font-family: monospace; font-size: 0.75rem;">[{start_fmt}]</span>
-                    </div>
-                    <div style="color: #F8FAFC; font-size: 0.95rem;">"{hook_line}"</div>
-                </div>
-                <div style="padding: 0.8rem; background: rgba(0,0,0,0.2); border-radius: 6px; margin: 0.4rem 0; color: #94A3B8; font-size: 0.88rem;">
-                    <em>Scene dramatic exchange: {why}</em>
-                </div>
-                <div class="transcript-line transcript-line-cliff">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
-                        <span style="color: #F472B6; font-weight: 700; font-size: 0.82rem;">⚡ CLIFFHANGER CLIMAX</span>
-                        <span style="color: #64748B; font-family: monospace; font-size: 0.75rem;">[{end_fmt}]</span>
-                    </div>
-                    <div style="color: #F8FAFC; font-size: 0.95rem;">"{cliff_line}"</div>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"**`[{start_fmt}]` Opening Hook Line:** \"{hook_line}\" `🪝 3s VIRAL HOOK`")
+            if why:
+                st.markdown(f"*Dramatic exchange:* {why}")
+            st.markdown(f"**`[{end_fmt}]` Cliffhanger Ending:** \"{cliff_line}\" `⚡ CLIFFHANGER`")
         else:
             for ev_idx, ev in enumerate(events, 1):
                 ev_type = ev.get("type", "dialogue")
@@ -384,7 +360,6 @@ def render_clip_card(
                 ev_start = float(ev.get("start_s", 0.0))
                 ev_end = float(ev.get("end_s", 0.0))
                 ev_s_fmt = fmt_seconds(ev_start)
-                ev_e_fmt = fmt_seconds(ev_end)
                 norm_text = _normalize_match(ev_text)
 
                 is_hook = bool(norm_hook and (norm_hook in norm_text or norm_text in norm_hook))
@@ -393,47 +368,40 @@ def render_clip_card(
                 if ev_type == "dialogue":
                     spk = ev.get("speaker") or "SPEAKER"
                     tone = ev.get("tone")
-                    tone_html = f'<span style="color: #A5B4FC; font-style: italic; font-size: 0.78rem; margin-left: 0.35rem;">({tone})</span>' if tone else ""
+                    tone_str = f" *({tone})*" if tone else ""
 
-                    badge_html = ""
-                    card_extra_class = ""
+                    tag = ""
                     if is_hook:
-                        badge_html = '<span style="background: rgba(16,185,129,0.25); color: #34D399; border: 1px solid rgba(16,185,129,0.5); padding: 1px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">🪝 3s VIRAL HOOK</span>'
-                        card_extra_class = "transcript-line-hook"
+                        tag = "  `🪝 3s VIRAL HOOK`"
                     elif is_cliff:
-                        badge_html = '<span style="background: rgba(236,72,153,0.25); color: #F472B6; border: 1px solid rgba(236,72,153,0.5); padding: 1px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">⚡ CLIFFHANGER</span>'
-                        card_extra_class = "transcript-line-cliff"
+                        tag = "  `⚡ CLIFFHANGER`"
 
-                    st.markdown(f"""
-                        <div class="transcript-line {card_extra_class}">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                                <div>
-                                    <span style="background: #312E81; color: #E0E7FF; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">
-                                        {spk}
-                                    </span>
-                                    {tone_html}
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    {badge_html}
-                                    <span style="color: #64748B; font-family: monospace; font-size: 0.75rem;">[{ev_s_fmt}]</span>
-                                </div>
-                            </div>
-                            <div style="color: #F8FAFC; font-size: 0.94rem; line-height: 1.45; margin-top: 0.15rem;">
-                                "{ev_text}"
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(f"**`[{ev_s_fmt}]` {spk}{tone_str}:** \"{ev_text}\"{tag}")
                 else:
-                    icon = "🎬" if ev_type == "action" else ("🎥" if ev_type == "camera" else "🔊")
-                    st.markdown(f"""
-                        <div style="background: rgba(30, 41, 59, 0.4); border-left: 2px solid #64748B; border-radius: 4px; padding: 0.4rem 0.8rem; margin-bottom: 0.4rem; font-size: 0.82rem; color: #94A3B8;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="color: #CBD5E1; font-weight: 600;">{icon} [{ev_type.upper()}]</span>
-                                <span style="color: #64748B; font-family: monospace; font-size: 0.72rem;">[{ev_s_fmt}]</span>
-                            </div>
-                            <div style="margin-top: 0.15rem; color: #CBD5E1;">{ev_text}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                    icon = "ACTION" if ev_type == "action" else (ev_type.upper())
+                    st.markdown(f"> *`[{ev_s_fmt}]` [{icon}]:* {ev_text}")
+
+            # Also provide a clean copyable plain text box for easy workflow
+            plain_script_lines = []
+            for ev in events:
+                ev_type = ev.get("type", "dialogue")
+                ev_s = fmt_seconds(float(ev.get("start_s", 0.0)))
+                ev_txt = ev.get("text", "")
+                if ev_type == "dialogue":
+                    spk = ev.get("speaker") or "SPEAKER"
+                    tone = f" ({ev.get('tone')})" if ev.get("tone") else ""
+                    plain_script_lines.append(f"[{ev_s}] {spk}{tone}: \"{ev_txt}\"")
+                else:
+                    plain_script_lines.append(f"[{ev_s}] [{ev_type.upper()}]: {ev_txt}")
+
+            plain_script_text = "\n".join(plain_script_lines)
+            st.text_area(
+                "📋 Raw Dialogue Script (Plain Text):",
+                value=plain_script_text,
+                height=min(220, max(100, len(plain_script_lines) * 24)),
+                key=f"plain_script_box_{cid}",
+                help="Normal plain text format for easy copying into video editing or captioning software.",
+            )
 
     # ── 3. HUMAN APPROVAL: Interactive Editorial Sign-Off & Notes ─────────────
     st.markdown("---")
