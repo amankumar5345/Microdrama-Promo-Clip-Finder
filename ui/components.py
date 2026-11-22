@@ -190,138 +190,76 @@ def render_clip_card(
         current_notes = clip.get("approval_notes") or ""
         st.session_state[f"approval_notes_{cid}"] = current_notes
 
-    # Visual badge for approval in header
-    approval_pill_html = ""
-    if current_status == "approved":
-        approval_pill_html = """
-            <span style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.6); padding: 3px 10px; border-radius: 9999px; font-size: 0.82rem; font-weight: 700;">
-                ✅ Approved for Promo
-            </span>
-        """
-    elif current_status == "rejected":
-        approval_pill_html = """
-            <span style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.6); padding: 3px 10px; border-radius: 9999px; font-size: 0.82rem; font-weight: 700;">
-                ❌ Rejected Cut
-            </span>
-        """
-    elif current_status == "recut":
-        approval_pill_html = """
-            <span style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.6); padding: 3px 10px; border-radius: 9999px; font-size: 0.82rem; font-weight: 700;">
-                ⚠️ Needs Re-cut
-            </span>
-        """
-    else:
-        approval_pill_html = """
-            <span style="background: rgba(148, 163, 184, 0.15); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.35); padding: 3px 10px; border-radius: 9999px; font-size: 0.82rem; font-weight: 600;">
-                ⏳ Pending Review
-            </span>
-        """
+    # Human-readable status label
+    status_label = {
+        "approved": "✅ Approved for Promotion",
+        "rejected": "❌ Rejected Cut",
+        "recut": "⚠️ Needs Re-cut",
+        "pending": "⏳ Pending Review",
+    }.get(current_status, "⏳ Pending Review")
 
     # ── Card Container ────────────────────────────────────────────────────────
-    st.markdown(f"""
-        <div class="clip-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 0.8rem;">
-                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
-                    <span style="background: #312E81; color: #C7D2FE; padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 0.9rem;">
-                        #{rank_idx}
-                    </span>
-                    <span style="font-size: 1.2rem; font-weight: 700; color: #F8FAFC;">{cid}</span>
-                    <span style="background: rgba(255,255,255,0.08); color: #CBD5E1; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">
-                        {ep}
-                    </span>
-                    <span style="background: rgba(99, 102, 241, 0.15); color: #818CF8; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-family: monospace;">
-                        ⏱️ {start_fmt} → {end_fmt} ({dur:.1f}s)
-                    </span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    {approval_pill_html}
-                    <span class="score-pill" style="background: {score_color(score)}20; color: {score_color(score)}; border: 1px solid {score_color(score)}50; font-size: 1rem;">
-                        ★ {score:.2f} / 10
-                    </span>
-                </div>
-            </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        # Header Row
+        h1, h2 = st.columns([3, 1])
+        with h1:
+            st.markdown(f"### 🏆 #{rank_idx} `{cid}` • {ep}")
+            st.caption(f"⏱️ **Cut Window:** `{start_fmt}` → `{end_fmt}` ({dur:.1f}s) | **Status:** `{status_label}`")
+        with h2:
+            st.metric("Total Score", f"{score:.2f} / 10")
 
-    # ── Top Row: Quotes & Sub-Scores ──────────────────────────────────────────
-    col_left, col_right = st.columns([1.6, 1.0])
+        st.markdown("---")
 
-    with col_left:
-        st.markdown(f"""
-            <div style="margin-bottom: 0.4rem;">
-                <strong style="color: #818CF8;">🪝 3-Second Viral Opening Hook ({hook_type}):</strong>
-                <div class="quote-box">"{hook_line}"</div>
-            </div>
-            <div style="margin-bottom: 0.4rem;">
-                <strong style="color: #F472B6;">⚡ High-Tension Cliffhanger Ending:</strong>
-                <div class="quote-box quote-cliff">"{cliff_line}"</div>
-            </div>
-            <div style="margin-top: 0.6rem;">
-                <strong style="color: #E2E8F0;">💡 Editorial Rationale (Why It Works):</strong>
-                <p style="color: #94A3B8; font-size: 0.92rem; margin-top: 0.2rem; line-height: 1.45;">{why}</p>
-            </div>
-        """, unsafe_allow_html=True)
+        # ── Top Row: Quotes & Sub-Scores ──────────────────────────────────────
+        col_left, col_right = st.columns([1.6, 1.0])
 
-        if problems:
-            st.warning(f"⚠️ **Identified Narrative Risks:** {'; '.join(problems)}")
+        with col_left:
+            st.markdown(f"**🪝 3-Second Opening Hook ({hook_type}):**")
+            st.info(f'"{hook_line}"')
 
-    with col_right:
-        h_score = clip.get("hook", 0.0)
-        c_score = clip.get("cliffhanger", 0.0)
-        e_score = clip.get("emotion", 0.0)
-        s_score = clip.get("standalone", 0.0)
+            st.markdown("**⚡ High-Tension Cliffhanger Ending:**")
+            st.warning(f'"{cliff_line}"')
 
-        st.caption("Sub-Score Performance Breakdown:")
-        st.progress(h_score / 10.0, text=f"Opening Hook: {h_score:.1f}/10")
-        st.progress(c_score / 10.0, text=f"Cliffhanger Pull: {c_score:.1f}/10")
-        st.progress(e_score / 10.0, text=f"Emotional Payoff: {e_score:.1f}/10")
-        st.progress(s_score / 10.0, text=f"Standalone Clarity: {s_score:.1f}/10")
+            st.markdown(f"**💡 Editorial Rationale:**\n\n{why}")
 
-    # ── 1. TIMESTAMPS: Exact Video Editor Promotion Cutting Window ────────────
-    st.markdown(f"""
-        <div class="editor-cut-banner">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.6rem;">
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <span style="font-size: 1.25rem;">✂️</span>
-                    <strong style="color: #F8FAFC; font-size: 1.05rem;">Video Editor Cut Guide: Promotion Time Range</strong>
-                    <span style="background: #312E81; color: #C7D2FE; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">
-                        {ep}
-                    </span>
-                </div>
-                <div style="color: #A5B4FC; font-size: 0.85rem; font-weight: 600;">
-                    Target Social Duration: <span style="color: #38BDF8;">{dur:.1f}s</span> (20s–60s Microdrama Spec)
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin: 0.6rem 0;">
-                <div style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid #10B981; border-radius: 6px; padding: 0.6rem 0.9rem;">
-                    <div style="color: #94A3B8; font-size: 0.72rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Cut Start Timecode</div>
-                    <div style="color: #34D399; font-size: 1.25rem; font-weight: 700; font-family: monospace;">[{start_fmt}]</div>
-                    <div style="color: #64748B; font-size: 0.75rem;">Timeline offset: {start_s:.2f} seconds</div>
-                </div>
-                <div style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid #EC4899; border-radius: 6px; padding: 0.6rem 0.9rem;">
-                    <div style="color: #94A3B8; font-size: 0.72rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Cut End Timecode</div>
-                    <div style="color: #F472B6; font-size: 1.25rem; font-weight: 700; font-family: monospace;">[{end_fmt}]</div>
-                    <div style="color: #64748B; font-size: 0.75rem;">Timeline offset: {end_s:.2f} seconds</div>
-                </div>
-                <div style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid #6366F1; border-radius: 6px; padding: 0.6rem 0.9rem;">
-                    <div style="color: #94A3B8; font-size: 0.72rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Total Promo Length</div>
-                    <div style="color: #818CF8; font-size: 1.25rem; font-weight: 700; font-family: monospace;">{dur:.1f}s</div>
-                    <div style="color: #64748B; font-size: 0.75rem;">Standard 9:16 Vertical Video</div>
-                </div>
-            </div>
-            <div style="color: #CBD5E1; font-size: 0.88rem; line-height: 1.45; margin-top: 0.5rem; background: rgba(0,0,0,0.25); padding: 0.5rem 0.8rem; border-radius: 6px;">
-                📌 <strong>Action for Video Editor / Promo Producer:</strong> Cut the master video for <strong>{ep}</strong> starting exactly at <strong>{start_fmt}</strong> and concluding at <strong>{end_fmt}</strong> to create this promotional asset.
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+            if problems:
+                st.error(f"⚠️ **Identified Narrative Risks:** {'; '.join(problems)}")
 
-    with st.expander(f"📋 Quick Copy Timecodes & FFmpeg Export Command — {cid}", expanded=False):
-        c_tc1, c_tc2 = st.columns([1, 2])
-        with c_tc1:
-            st.text_input("Raw Timecode Window:", value=f"{start_fmt} - {end_fmt}", key=f"raw_tc_{cid}")
-        with c_tc2:
-            safe_ep = re.sub(r"[^\w\-_.]", "_", ep)
-            ffmpeg_cmd = f'ffmpeg -ss {start_fmt} -to {end_fmt} -i "{safe_ep}.mp4" -c copy "promo_{cid}.mp4"'
-            st.text_input("FFmpeg Video Cut Command:", value=ffmpeg_cmd, key=f"ffmpeg_cmd_{cid}")
+        with col_right:
+            h_score = clip.get("hook", 0.0)
+            c_score = clip.get("cliffhanger", 0.0)
+            e_score = clip.get("emotion", 0.0)
+            s_score = clip.get("standalone", 0.0)
+
+            st.caption("Sub-Score Performance:")
+            st.progress(h_score / 10.0, text=f"Opening Hook: {h_score:.1f}/10")
+            st.progress(c_score / 10.0, text=f"Cliffhanger Pull: {c_score:.1f}/10")
+            st.progress(e_score / 10.0, text=f"Emotional Payoff: {e_score:.1f}/10")
+            st.progress(s_score / 10.0, text=f"Standalone Clarity: {s_score:.1f}/10")
+
+        # ── 1. Video Editor Cut Guide ─────────────────────────────────────────
+        st.markdown("---")
+        st.markdown(f"#### ✂️ Video Editor Cut Guide: Promotion Time Range ({ep})")
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            st.metric("Cut Start Timecode", f"[{start_fmt}]", f"{start_s:.2f}s timeline offset")
+        with m2:
+            st.metric("Cut End Timecode", f"[{end_fmt}]", f"{end_s:.2f}s timeline offset")
+        with m3:
+            st.metric("Promo Video Duration", f"{dur:.1f}s", "Vertical 9:16 Format")
+
+        st.caption(
+            f"📌 **Editor Action:** Cut master footage of **{ep}** starting at **{start_fmt}** and ending at **{end_fmt}**."
+        )
+
+        with st.expander(f"📋 Quick Copy Timecodes & FFmpeg Export Command — {cid}", expanded=False):
+            c_tc1, c_tc2 = st.columns([1, 2])
+            with c_tc1:
+                st.text_input("Raw Timecode Window:", value=f"{start_fmt} - {end_fmt}", key=f"raw_tc_{cid}")
+            with c_tc2:
+                safe_ep = re.sub(r"[^\w\-_.]", "_", ep)
+                ffmpeg_cmd = f'ffmpeg -ss {start_fmt} -to {end_fmt} -i "{safe_ep}.mp4" -c copy "promo_{cid}.mp4"'
+                st.text_input("FFmpeg Video Cut Command:", value=ffmpeg_cmd, key=f"ffmpeg_cmd_{cid}")
 
     # ── 2. CONVERSATION: Full Promo Script & Dialogue Breakdown ───────────────
     events = extract_clip_events(clip, episode=episode)
@@ -474,8 +412,6 @@ def render_clip_card(
                 db.set_approval_status(cid, session_id, current_status, new_note)
             st.toast("Feedback note saved successfully!", icon="💾")
             st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_social_and_blind_details(ranked_clips: list[dict], episode: dict = None):
